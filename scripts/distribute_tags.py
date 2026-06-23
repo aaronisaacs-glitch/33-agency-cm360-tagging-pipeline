@@ -221,7 +221,8 @@ def distribute():
         """
 
         # Send to requester + biddable team
-        recipients = list(filter(None, [requester_email, BIDDABLE_EMAIL]))
+        biddable_emails = [e.strip() for e in BIDDABLE_EMAIL.split(',') if e.strip()]
+recipients = list(filter(None, [requester_email] + biddable_emails))
         if recipients:
             send_email(
                 to_emails=recipients,
