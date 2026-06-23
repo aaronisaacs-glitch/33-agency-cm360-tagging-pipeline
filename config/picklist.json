@@ -1,0 +1,15 @@
+{
+  "mediums": ["Audio", "Banner", "CPM", "CPC", "CTV", "Content", "DOOH", "DigitalAudio", "Display", "Email", "JobBoard", "Mobile", "OOH", "OrganicSocial", "PaidSearch", "PaidSocial", "PerformanceMax", "VOD"],
+  "formats": ["Banner", "Button", "Carousel", "CarouselAd", "Content", "Image", "MobileBanner", "NativeAd", "OrganicSocialPost", "PPC_SponsoredKeyword", "PromotedSocialPost", "SparkAd", "SponsoredAd", "SponsoredJob", "Story", "Video", "VideoAd"],
+  "tagTypes": [
+    { "value": "TrackingAd", "label": "Tracking ad", "desc": "Social / programmatic — no creative upload" },
+    { "value": "Standard", "label": "Standard ad", "desc": "Display / banner — creative upload required" },
+    { "value": "StaticClickTracker", "label": "Static click tracker", "desc": "Click tracking only" },
+    { "value": "DynamicClickTracker", "label": "Dynamic click tracker", "desc": "Dynamic click tracking" }
+  ],
+  "dimensions": ["1x1","120x600","160x600","200x200","250x250","300x50","300x100","300x250","300x300","300x600","320x50","320x100","320x480","336x280","468x60","728x90","768x1024","970x90","970x250","1024x768","1080x1350","1080x1920","1200x628","1200x675","1920x1080","16x9","9x16","4x5","4x3","2x3"],
+  "funnelStages": ["Prospecting", "Retargeting", "Remarketing", "Conversion"],
+  "countries": ["UK", "Multiple", "Germany", "Sweden", "Denmark"],
+  "cities": ["Multiple", "London", "Stockholm", "Copenhagen"],
+  "pricingTypes": ["CPM", "CPC", "CPA", "Flat Rate - Impressions", "Flat Rate - Clicks"]
+}

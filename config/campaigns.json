@@ -1,0 +1,11 @@
+{
+  "_comment": "Add new campaigns here when created in CM360. advertiserName must match exactly what's in advertisers.json.",
+  "campaigns": [
+    {
+      "name": "2026_SERCO_BRECKLANDHGV",
+      "id": "36193689",
+      "advertiserName": "Serco",
+      "label": "Serco — Breckland HGV 2026"
+    }
+  ]
+}

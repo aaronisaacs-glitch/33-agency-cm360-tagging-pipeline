@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trafficking Log</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh}
+.header{background:#1F4E79;color:#fff;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:500}
+.header a{color:#a8c7e8;font-size:13px;text-decoration:none}
+.header a:hover{color:#fff}
+.app{max-width:1200px;margin:0 auto;padding:1.5rem 1rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem}
+.stat{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1rem 1.25rem}
+.stat-label{font-size:11px;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-value{font-size:24px;font-weight:500;color:#1a1a1a}
+.filters{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+.filters select, .filters input{padding:6px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;color:#1a1a1a;background:#fff;outline:none;-webkit-appearance:none}
+.filters select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.filters input{width:220px}
+.filters label{font-size:12px;color:#888;font-weight:500}
+.table-wrap{background:#fff;border:0.5px solid #ddd;border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:#f8f9fa}
+th{padding:10px 14px;text-align:left;font-weight:500;color:#555;border-bottom:0.5px solid #eee;white-space:nowrap}
+td{padding:10px 14px;border-bottom:0.5px solid #f0f0f0;color:#333;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:100px;font-weight:500;white-space:nowrap}
+.badge-submitted{background:#E6F1FB;color:#185FA5}
+.badge-approved{background:#FAEEDA;color:#854F0B}
+.badge-live{background:#eaf3de;color:#3B6D11}
+.badge-ended{background:#f0f0f0;color:#666}
+.badge-failed{background:#fcebeb;color:#a32d2d}
+.placement-name{font-family:'SF Mono','Fira Mono',monospace;font-size:11px;color:#1F4E79;max-width:300px;word-break:break-all}
+.empty{text-align:center;padding:3rem;color:#aaa;font-size:14px}
+.upload-section{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.upload-section h3{font-size:14px;font-weight:500;margin-bottom:.5rem}
+.upload-section p{font-size:12px;color:#888;margin-bottom:.75rem}
+.upload-btn{display:inline-flex;align-items:center;gap:6px;background:#1F4E79;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:13px;cursor:pointer}
+.upload-btn:hover{background:#163d5e}
+.upload-status{font-size:12px;margin-top:.5rem}
+.upload-status.ok{color:#3B6D11}
+.upload-status.err{color:#a32d2d}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Trafficking Log</h1>
+  <a href="index.html">← New tag request</a>
+</div>
+
+<div class="app">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total placements</div><div class="stat-value" id="statTotal">—</div></div>
+    <div class="stat"><div class="stat-label">Live</div><div class="stat-value" id="statLive" style="color:#3B6D11">—</div></div>
+    <div class="stat"><div class="stat-label">Pending review</div><div class="stat-value" id="statPending" style="color:#854F0B">—</div></div>
+    <div class="stat"><div class="stat-label">Ended</div><div class="stat-value" id="statEnded" style="color:#888">—</div></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <label>Filter:</label>
+    <input type="text" id="fSearch" placeholder="Search placement name…" oninput="renderTable()" />
+    <select id="fClient" onchange="renderTable()">
+      <option value="">All clients</option>
+    </select>
+    <select id="fSite" onchange="renderTable()">
+      <option value="">All sites</option>
+    </select>
+    <select id="fStatus" onchange="renderTable()">
+      <option value="">All statuses</option>
+      <option value="submitted">Submitted</option>
+      <option value="approved">Approved</option>
+      <option value="live">Live</option>
+      <option value="ended">Ended</option>
+      <option value="failed">Failed</option>
+    </select>
+    <button onclick="loadData()" style="padding:6px 12px;border:0.5px solid #ccc;border-radius:7px;background:#fff;font-size:12px;cursor:pointer;color:#555">↻ Refresh</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Placement name</th>
+          <th>Client</th>
+          <th>Site</th>
+          <th>Dimensions</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Tag type</th>
+          <th>Requester</th>
+          <th>Status</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="10" class="empty">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+let allData = [];
+
+function statusBadge(status) {
+  const map = {
+    submitted: 'badge-submitted',
+    approved: 'badge-approved',
+    live: 'badge-live',
+    ended: 'badge-ended',
+    failed: 'badge-failed',
+  };
+  return `<span class="badge ${map[status]||'badge-submitted'}">${status||'submitted'}</span>`;
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  if (d.includes('T')) return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  return d;
+}
+
+function autoStatus(row) {
+  if (row.status && row.status !== 'submitted') return row.status;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const parseDMY = s => { if (!s) return null; const [d,m,y] = s.split('/'); return new Date(y,m-1,d); };
+  const start = parseDMY(row.startDate);
+  const end = parseDMY(row.endDate);
+  if (end && end < today) return 'ended';
+  if (start && start <= today && end && end >= today) return 'live';
+  return row.status || 'submitted';
+}
+
+function renderTable() {
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  const client = document.getElementById('fClient').value;
+  const site = document.getElementById('fSite').value;
+  const status = document.getElementById('fStatus').value;
+
+  const filtered = allData.filter(r => {
+    const s = autoStatus(r);
+    if (search && !r.placementName?.toLowerCase().includes(search)) return false;
+    if (client && r.client !== client) return false;
+    if (site && r.site !== site) return false;
+    if (status && s !== status) return false;
+    return true;
+  });
+
+  // Stats
+  document.getElementById('statTotal').textContent = allData.length;
+  document.getElementById('statLive').textContent = allData.filter(r => autoStatus(r) === 'live').length;
+  document.getElementById('statPending').textContent = allData.filter(r => ['submitted','approved'].includes(autoStatus(r))).length;
+  document.getElementById('statEnded').textContent = allData.filter(r => autoStatus(r) === 'ended').length;
+
+  const tbody = document.getElementById('tableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty">No placements found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.sort((a,b) => new Date(b.submittedAt||0) - new Date(a.submittedAt||0)).map(r => `
+    <tr>
+      <td><div class="placement-name">${r.placementName || '—'}</div></td>
+      <td>${r.client || '—'}</td>
+      <td>${r.site ? r.site.replace('.com','') : '—'}</td>
+      <td>${r.dimensions || '—'}</td>
+      <td>${r.startDate || '—'}</td>
+      <td>${r.endDate || '—'}</td>
+      <td>${r.tagType || '—'}</td>
+      <td>${r.requesterName || r.requesterEmail || '—'}</td>
+      <td>${statusBadge(autoStatus(r))}</td>
+      <td>${fmtDate(r.submittedAt)}</td>
+    </tr>
+  `).join('');
+}
+
+function populateFilters() {
+  const clients = [...new Set(allData.map(r => r.client).filter(Boolean))];
+  const sites = [...new Set(allData.map(r => r.site).filter(Boolean))];
+  const fClient = document.getElementById('fClient');
+  const fSite = document.getElementById('fSite');
+  clients.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; fClient.appendChild(o); });
+  sites.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s.replace('.com',''); fSite.appendChild(o); });
+}
+
+async function loadData() {
+  try {
+    // In production this fetches from the repo's outputs/results.json via GitHub Pages
+    const res = await fetch('../outputs/results.json');
+    if (!res.ok) throw new Error('Not found');
+    allData = await res.json();
+    populateFilters();
+    renderTable();
+  } catch {
+    // Show empty state with demo data hint
+    allData = [];
+    document.getElementById('tableBody').innerHTML = `
+      <tr><td colspan="10" class="empty">
+        No data yet — once requests are processed, results will appear here automatically.
+      </td></tr>`;
+    document.getElementById('statTotal').textContent = '0';
+    document.getElementById('statLive').textContent = '0';
+    document.getElementById('statPending').textContent = '0';
+    document.getElementById('statEnded').textContent = '0';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+name: CM360 Tagging Pipeline
+
+on:
+  pull_request:
+    paths:
+      - 'requests/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'requests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write  # Required for Workload Identity Federation
+
+jobs:
+  validate:
+    name: Validate requests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Validate all requests
+        run: python scripts/validate.py
+
+  push-to-cm360:
+    name: Push to CM360 and distribute tags
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client google-auth openpyxl
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Push placements and creatives to CM360
+        run: python scripts/push_to_cm360.py
+
+      - name: Distribute tags to biddable team
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          BIDDABLE_TEAM_EMAIL: ${{ secrets.BIDDABLE_TEAM_EMAIL }}
+        run: python scripts/distribute_tags.py
+
+      - name: Commit results and tag sheets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/ tags/
+          git diff --staged --quiet || git commit -m "chore: pipeline results $(date +'%Y-%m-%d %H:%M') [skip ci]"
+          git push
+
+      - name: Archive tag sheets
+        uses: actions/upload-artifact@v4
+        with:
+          name: tag-sheets
+          path: outputs/Tags_*.xlsx
+          retention-days: 90

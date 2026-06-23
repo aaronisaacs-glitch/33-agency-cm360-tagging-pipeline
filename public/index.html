@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CM360 Tag Request</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh}
+.header{background:#1F4E79;color:#fff;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:500}
+.header a{color:#a8c7e8;font-size:13px;text-decoration:none}
+.header a:hover{color:#fff}
+.app{max-width:900px;margin:0 auto;padding:2rem 1rem 6rem}
+.section{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:1rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+label{font-size:12px;color:#555;font-weight:500}
+.req{color:#e24b4a;margin-left:2px}
+input,select,textarea{width:100%;padding:8px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;font-family:inherit;color:#1a1a1a;background:#fff;outline:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:#1F4E79;box-shadow:0 0 0 3px rgba(31,78,121,.1)}
+input[readonly]{background:#f8f8f8;color:#888}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px}
+.tag-type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.625rem;margin-bottom:.5rem}
+.tt-card{border:0.5px solid #ddd;border-radius:9px;padding:.75rem;cursor:pointer;transition:all .12s}
+.tt-card:hover{border-color:#1F4E79;background:#f0f5fa}
+.tt-card.selected{border:2px solid #1F4E79;background:#e8f0f8}
+.tt-card .ttl{font-size:13px;font-weight:500;margin-bottom:2px;color:#1a1a1a}
+.tt-card .ttd{font-size:11px;color:#777;line-height:1.4}
+.tracking-choice{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:1rem}
+.tc-card{border:0.5px solid #ddd;border-radius:9px;padding:.75rem;cursor:pointer;transition:all .12s}
+.tc-card:hover{border-color:#1F4E79;background:#f0f5fa}
+.tc-card.selected{border:2px solid #1F4E79;background:#e8f0f8}
+.tc-card .tcl{font-size:13px;font-weight:500;margin-bottom:2px}
+.tc-card .tcd{font-size:11px;color:#777}
+.preview-box{background:#f0f5fa;border:0.5px solid #b3c9e0;border-radius:9px;padding:1rem 1.25rem}
+.pl{font-size:10px;font-weight:600;color:#1F4E79;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.pv{font-size:12px;font-family:'SF Mono','Fira Mono',monospace;color:#0d3356;word-break:break-all;background:#fff;border:0.5px solid #c5d8ea;border-radius:5px;padding:5px 8px;margin-bottom:10px}
+.pv.empty{color:#aaa;font-family:inherit;font-style:italic;background:transparent;border:none;padding:0}
+.upload-zone{border:1.5px dashed #ccc;border-radius:9px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .12s}
+.upload-zone:hover,.upload-zone.over{border-color:#1F4E79;background:#f0f5fa}
+.file-badge{display:flex;align-items:center;gap:8px;background:#eaf3de;border:0.5px solid #c0dd97;border-radius:7px;padding:7px 10px;margin-top:6px}
+.fb-name{font-size:12px;color:#3B6D11;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fb-size{font-size:11px;color:#639922}
+.fb-rm{font-size:14px;color:#639922;cursor:pointer;opacity:.7}
+.fb-rm:hover{opacity:1}
+.err{font-size:11px;color:#e24b4a;margin-top:3px}
+.hidden{display:none!important}
+.help{font-size:11px;color:#888;margin-top:3px}
+.url-preview{font-size:11px;color:#1F4E79;margin-top:5px;word-break:break-all;font-family:monospace;background:#f0f5fa;border-radius:5px;padding:4px 7px}
+
+/* Bulk rows */
+.rows-container{display:flex;flex-direction:column;gap:.75rem}
+.row-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;overflow:hidden}
+.row-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:#f8f9fa;border-bottom:0.5px solid #eee;cursor:pointer}
+.row-num{font-size:12px;font-weight:600;color:#555}
+.row-summary{font-size:12px;color:#888;flex:1;margin:0 1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-status{font-size:11px;padding:2px 8px;border-radius:100px;font-weight:500}
+.row-status.ok{background:#eaf3de;color:#3B6D11}
+.row-status.draft{background:#f0f2f5;color:#888}
+.row-status.err{background:#fcebeb;color:#a32d2d}
+.row-body{padding:1.25rem}
+.row-actions{display:flex;gap:.5rem;align-items:center}
+.btn-icon{background:transparent;border:none;cursor:pointer;color:#888;font-size:16px;padding:4px;border-radius:5px}
+.btn-icon:hover{color:#e24b4a;background:#fef2f2}
+.btn-add{display:flex;align-items:center;gap:6px;background:transparent;border:1.5px dashed #ccc;border-radius:9px;padding:.75rem 1.25rem;color:#666;font-size:13px;cursor:pointer;width:100%;justify-content:center;transition:all .12s;margin-top:.75rem}
+.btn-add:hover{border-color:#1F4E79;color:#1F4E79;background:#f0f5fa}
+.divider{height:0.5px;background:#eee;margin:.875rem 0}
+
+/* Bottom bar */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #ddd;padding:.875rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;z-index:100}
+.btn-primary{background:#1F4E79;color:#fff;border:none;border-radius:7px;padding:9px 22px;font-size:14px;font-weight:500;cursor:pointer}
+.btn-primary:hover{background:#163d5e}
+.btn-primary:disabled{background:#aaa;cursor:not-allowed}
+.btn-secondary{background:transparent;border:0.5px solid #ccc;border-radius:7px;padding:9px 16px;font-size:13px;color:#666;cursor:pointer}
+.btn-secondary:hover{border-color:#999;color:#333}
+.status-ok{font-size:13px;color:#3B6D11}
+.status-err{font-size:13px;color:#a32d2d}
+@media(max-width:600px){.grid-2,.grid-3,.tag-type-grid,.tracking-choice{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CM360 Tag Request</h1>
+  <a href="dashboard.html">View trafficking log →</a>
+</div>
+
+<div class="app">
+
+  <!-- Campaign details (shared across all rows) -->
+  <div class="section">
+    <div class="section-title">Campaign details</div>
+    <div class="grid-3">
+      <div class="field">
+        <label for="g_client">Client <span class="req">*</span></label>
+        <select id="g_client">
+          <option value="">Select client…</option>
+          <option value="Serco" data-advertiser-id="16165495">Serco</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="g_campaign">Campaign <span class="req">*</span></label>
+        <select id="g_campaign">
+          <option value="">Select campaign…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="g_jobNumber">Job number <span class="req">*</span></label>
+        <input type="text" id="g_jobNumber" placeholder="e.g. 6850" />
+      </div>
+      <div class="field">
+        <label for="g_requesterName">Your name <span class="req">*</span></label>
+        <input type="text" id="g_requesterName" placeholder="e.g. Sarah Jones" />
+      </div>
+      <div class="field full" style="grid-column:2/-1">
+        <label for="g_requesterEmail">Your email <span class="req">*</span></label>
+        <input type="email" id="g_requesterEmail" placeholder="you@agency.com" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Placement rows -->
+  <div class="rows-container" id="rowsContainer"></div>
+
+  <button class="btn-add" id="btnAddRow">
+    <span style="font-size:18px">+</span> Add placement
+  </button>
+
+</div>
+
+<div class="bottom-bar">
+  <button class="btn-secondary" id="btnReset">Clear all</button>
+  <div id="statusMsg"></div>
+  <button class="btn-primary" id="btnSubmit">Submit request →</button>
+</div>
+
+<script>
+// ── Config (mirrors JSON files) ──────────────────────────────────────────────
+const CAMPAIGNS = [
+  { name: "2026_SERCO_BRECKLANDHGV", id: "36193689", advertiserName: "Serco", label: "Serco — Breckland HGV 2026" }
+];
+const SITES = [
+  { name: "Meta.com", id: "10326582", label: "Meta / Facebook", utmSource: "Facebook" },
+  { name: "Instagram.com", id: "2532324", label: "Instagram", utmSource: "Instagram" },
+  { name: "MicrosoftAdvertising.com", id: "10528412", label: "Microsoft Ads / Bing", utmSource: "Bing" },
+  { name: "TikTok.com", id: "6662986", label: "TikTok UK", utmSource: "TikTok" },
+  { name: "StackAdapt.com", id: "9915189", label: "StackAdapt", utmSource: "StackAdapt" },
+  { name: "LinkedIn.com", id: "2584125", label: "LinkedIn", utmSource: "LinkedIn" }
+];
+const MEDIUMS = ["Audio","Banner","CPM","CPC","CTV","Content","DOOH","DigitalAudio","Display","Email","JobBoard","Mobile","OOH","OrganicSocial","PaidSearch","PaidSocial","PerformanceMax","VOD"];
+const FORMATS = ["Banner","Button","Carousel","CarouselAd","Content","Image","MobileBanner","NativeAd","OrganicSocialPost","PPC_SponsoredKeyword","PromotedSocialPost","SparkAd","SponsoredAd","SponsoredJob","Story","Video","VideoAd"];
+const DIMENSIONS = ["1x1","120x600","160x600","300x50","300x100","300x250","300x600","320x50","320x100","320x480","336x280","468x60","728x90","970x90","970x250","1080x1350","1080x1920","1200x628","1920x1080","16x9","9x16","4x5"];
+const FUNNEL = ["Prospecting","Retargeting","Remarketing","Conversion"];
+const COUNTRIES = ["UK","Multiple","Germany","Sweden","Denmark"];
+const CITIES = ["Multiple","London","Stockholm","Copenhagen"];
+const PRICING = ["CPM","CPC","CPA","Flat Rate - Impressions","Flat Rate - Clicks"];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let rows = [];
+let rowCounter = 0;
+let uploadedFiles = {};
+
+function gv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+// ── Campaign dropdown filtering ───────────────────────────────────────────────
+document.getElementById('g_client').addEventListener('change', function() {
+  const client = this.value;
+  const campSel = document.getElementById('g_campaign');
+  campSel.innerHTML = '<option value="">Select campaign…</option>';
+  CAMPAIGNS.filter(c => c.advertiserName === client).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.dataset.name = c.name;
+    opt.textContent = c.label;
+    campSel.appendChild(opt);
+  });
+  rows.forEach(r => updatePreview(r.id));
+});
+
+['g_client','g_campaign','g_jobNumber'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => rows.forEach(r => updatePreview(r.id)));
+  document.getElementById(id).addEventListener('input', () => rows.forEach(r => updatePreview(r.id)));
+});
+
+// ── Build a placement row ─────────────────────────────────────────────────────
+function buildRow(rowId) {
+  const siteOpts = SITES.map(s => `<option value="${s.name}" data-utm="${s.utmSource}">${s.label}</option>`).join('');
+  const medOpts = MEDIUMS.map(m => `<option>${m}</option>`).join('');
+  const fmtOpts = FORMATS.map(f => `<option>${f}</option>`).join('');
+  const dimOpts = DIMENSIONS.map(d => `<option>${d}</option>`).join('');
+  const funOpts = FUNNEL.map(f => `<option>${f}</option>`).join('');
+  const ctryOpts = COUNTRIES.map(c => `<option>${c}</option>`).join('');
+  const cityOpts = CITIES.map(c => `<option>${c}</option>`).join('');
+  const priOpts = PRICING.map(p => `<option>${p}</option>`).join('');
+
+  return `
+  <div class="row-card" id="rowCard_${rowId}">
+    <div class="row-header" onclick="toggleRow('${rowId}')">
+      <span class="row-num">Placement ${rowId}</span>
+      <span class="row-summary" id="rowSummary_${rowId}">Fill in details below…</span>
+      <span class="row-status draft" id="rowStatus_${rowId}">Draft</span>
+      <div class="row-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon" onclick="removeRow('${rowId}')" title="Remove">✕</button>
+      </div>
+    </div>
+    <div class="row-body" id="rowBody_${rowId}">
+
+      <!-- Tag type -->
+      <div class="section-title" style="margin-bottom:.625rem">Tag type <span class="req">*</span></div>
+      <div class="tag-type-grid">
+        ${[
+          {v:'TrackingAd',l:'Tracking ad',d:'Social / programmatic'},
+          {v:'Standard',l:'Standard ad',d:'Display — creative required'},
+          {v:'StaticClickTracker',l:'Static click tracker',d:'Click tracking only'},
+          {v:'DynamicClickTracker',l:'Dynamic click tracker',d:'Dynamic click tracking'}
+        ].map(t => `
+          <div class="tt-card" data-row="${rowId}" data-val="${t.v}" onclick="selectTagType('${rowId}','${t.v}')">
+            <div class="ttl">${t.l}</div><div class="ttd">${t.d}</div>
+          </div>`).join('')}
+      </div>
+      <div class="err hidden" id="ttErr_${rowId}">Please select a tag type</div>
+
+      <div class="divider"></div>
+
+      <!-- Placement details -->
+      <div class="section-title" style="margin-bottom:.625rem">Placement details</div>
+      <div class="grid-2" style="margin-bottom:.75rem">
+        <div class="field">
+          <label>Site <span class="req">*</span></label>
+          <select id="r_site_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select site…</option>${siteOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Medium <span class="req">*</span></label>
+          <select id="r_medium_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select…</option>${medOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Format <span class="req">*</span></label>
+          <select id="r_format_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select…</option>${fmtOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Dimensions <span class="req">*</span></label>
+          <select id="r_dims_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select…</option>${dimOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Funnel stage <span class="req">*</span></label>
+          <select id="r_funnel_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select…</option>${funOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Cost structure</label>
+          <select id="r_pricing_${rowId}"><option value="">Select…</option>${priOpts}</select>
+        </div>
+        <div class="field">
+          <label>Country <span class="req">*</span></label>
+          <select id="r_country_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select…</option>${ctryOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Town / city</label>
+          <select id="r_city_${rowId}" onchange="onFieldChange('${rowId}')">
+            <option value="">Select…</option>${cityOpts}
+          </select>
+        </div>
+        <div class="field">
+          <label>Start date <span class="req">*</span></label>
+          <input type="date" id="r_start_${rowId}" onchange="onFieldChange('${rowId}')" />
+        </div>
+        <div class="field">
+          <label>End date <span class="req">*</span></label>
+          <input type="date" id="r_end_${rowId}" onchange="onFieldChange('${rowId}')" />
+        </div>
+      </div>
+
+      <!-- Creative details -->
+      <div class="divider"></div>
+      <div class="section-title" style="margin-bottom:.625rem">Creative</div>
+      <div class="field" style="margin-bottom:.75rem">
+        <label>Creative name <span class="req">*</span></label>
+        <input type="text" id="r_creative_${rowId}" placeholder="e.g. Breckland_Carousel1" oninput="onFieldChange('${rowId}')" />
+        <div class="help">Used in placement and ad names.</div>
+      </div>
+
+      <!-- Tracking ad: existing vs new creative -->
+      <div id="trackingCreativeSection_${rowId}" class="hidden">
+        <div class="section-title" style="margin-bottom:.625rem">Tracking creative</div>
+        <div class="tracking-choice">
+          <div class="tc-card" onclick="selectTrackingChoice('${rowId}','existing')">
+            <div class="tcl">Use existing creative</div>
+            <div class="tcd">Creative already exists in CM360 — enter its ID</div>
+          </div>
+          <div class="tc-card" onclick="selectTrackingChoice('${rowId}','new')">
+            <div class="tcl">Create new creative</div>
+            <div class="tcd">Pipeline will create a new tracking creative in CM360</div>
+          </div>
+        </div>
+        <div class="err hidden" id="tcErr_${rowId}">Please select a tracking creative option</div>
+        <div id="existingCreativeSection_${rowId}" class="hidden">
+          <div class="field">
+            <label>Existing creative ID <span class="req">*</span></label>
+            <input type="text" id="r_trackingId_${rowId}" placeholder="e.g. 259236180" />
+            <div class="help">Find this in CM360 under Creatives.</div>
+          </div>
+        </div>
+        <div id="newCreativeSection_${rowId}" class="hidden">
+          <div class="field">
+            <label>New creative name <span class="req">*</span></label>
+            <input type="text" id="r_trackingName_${rowId}" placeholder="e.g. 6850_serco_tracking_ad" />
+            <div class="help">This will become the creative name in CM360.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Standard: file upload -->
+      <div id="standardCreativeSection_${rowId}" class="hidden">
+        <label style="font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:6px">Creative file <span class="req">*</span></label>
+        <div class="upload-zone" id="uploadZone_${rowId}"
+          onclick="document.getElementById('fileInput_${rowId}').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="handleDrop(event,'${rowId}')">
+          <div style="font-size:22px;color:#bbb;margin-bottom:6px">↑</div>
+          <div style="font-size:13px;color:#666">Click to upload or drag and drop</div>
+          <div style="font-size:11px;color:#aaa;margin-top:3px">JPG, PNG, GIF ≤200KB · HTML5 .zip ≤500KB</div>
+          <input type="file" id="fileInput_${rowId}" style="display:none" accept=".jpg,.jpeg,.png,.gif,.zip"
+            onchange="handleFile(event.target.files[0],'${rowId}')" />
+        </div>
+        <div id="fileBadge_${rowId}" class="hidden"></div>
+        <div class="err hidden" id="fileErr_${rowId}"></div>
+      </div>
+
+      <!-- URL -->
+      <div class="divider"></div>
+      <div class="section-title" style="margin-bottom:.625rem">URL</div>
+      <div class="field" style="margin-bottom:.625rem">
+        <label>Landing page (base URL) <span class="req">*</span></label>
+        <input type="url" id="r_landing_${rowId}" placeholder="https://careers.example.com/job/123" oninput="onFieldChange('${rowId}')" />
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:.375rem">Destination URL (auto-generated with UTM params):</div>
+      <div class="url-preview" id="urlPreview_${rowId}" style="color:#aaa;font-style:italic">Fill in landing page above…</div>
+
+      <!-- Name preview -->
+      <div class="divider"></div>
+      <div class="preview-box">
+        <div class="pl">Placement name</div>
+        <div class="pv empty" id="prevPlacement_${rowId}">Fill in details above to preview…</div>
+        <div class="pl">Ad name</div>
+        <div class="pv empty" id="prevAd_${rowId}">Fill in details above to preview…</div>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+// ── Row management ────────────────────────────────────────────────────────────
+function addRow() {
+  rowCounter++;
+  const id = `${rowCounter}`;
+  rows.push({ id, tagType: '', trackingChoice: '', valid: false });
+  const container = document.getElementById('rowsContainer');
+  const div = document.createElement('div');
+  div.innerHTML = buildRow(id);
+  container.appendChild(div.firstElementChild);
+}
+
+function removeRow(rowId) {
+  rows = rows.filter(r => r.id !== rowId);
+  document.getElementById(`rowCard_${rowId}`)?.remove();
+  delete uploadedFiles[rowId];
+}
+
+function toggleRow(rowId) {
+  const body = document.getElementById(`rowBody_${rowId}`);
+  body.classList.toggle('hidden');
+}
+
+// ── Tag type selection ────────────────────────────────────────────────────────
+function selectTagType(rowId, type) {
+  const row = rows.find(r => r.id === rowId);
+  if (row) row.tagType = type;
+  document.querySelectorAll(`[data-row="${rowId}"]`).forEach(c => {
+    c.classList.toggle('selected', c.dataset.val === type);
+  });
+  document.getElementById(`ttErr_${rowId}`).classList.add('hidden');
+  document.getElementById(`trackingCreativeSection_${rowId}`).classList.toggle('hidden', type !== 'TrackingAd');
+  document.getElementById(`standardCreativeSection_${rowId}`).classList.toggle('hidden', type !== 'Standard');
+  updatePreview(rowId);
+  updateRowStatus(rowId);
+}
+
+function selectTrackingChoice(rowId, choice) {
+  const row = rows.find(r => r.id === rowId);
+  if (row) row.trackingChoice = choice;
+  document.querySelectorAll(`#rowCard_${rowId} .tc-card`).forEach((c, i) => {
+    c.classList.toggle('selected', (i === 0 && choice === 'existing') || (i === 1 && choice === 'new'));
+  });
+  document.getElementById(`tcErr_${rowId}`).classList.add('hidden');
+  document.getElementById(`existingCreativeSection_${rowId}`).classList.toggle('hidden', choice !== 'existing');
+  document.getElementById(`newCreativeSection_${rowId}`).classList.toggle('hidden', choice !== 'new');
+}
+
+// ── File handling ─────────────────────────────────────────────────────────────
+function handleDrop(event, rowId) {
+  event.preventDefault();
+  document.getElementById(`uploadZone_${rowId}`).classList.remove('over');
+  handleFile(event.dataTransfer.files[0], rowId);
+}
+
+function handleFile(file, rowId) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const maxKB = ext === 'zip' ? 500 : 200;
+  const sizeKB = file.size / 1024;
+  const errEl = document.getElementById(`fileErr_${rowId}`);
+  if (!['jpg','jpeg','png','gif','zip'].includes(ext)) {
+    errEl.textContent = 'Only JPG, PNG, GIF or .zip accepted'; errEl.classList.remove('hidden'); return;
+  }
+  if (sizeKB > maxKB) {
+    errEl.textContent = `${sizeKB.toFixed(0)}KB exceeds ${maxKB}KB limit`; errEl.classList.remove('hidden'); return;
+  }
+  errEl.classList.add('hidden');
+  uploadedFiles[rowId] = file;
+  const badge = document.getElementById(`fileBadge_${rowId}`);
+  badge.innerHTML = `<span class="fb-name">${file.name}</span><span class="fb-size">${sizeKB.toFixed(0)}KB</span><span class="fb-rm" onclick="removeFile('${rowId}')">✕</span>`;
+  badge.classList.remove('hidden');
+  updateRowStatus(rowId);
+}
+
+function removeFile(rowId) {
+  delete uploadedFiles[rowId];
+  document.getElementById(`fileBadge_${rowId}`).classList.add('hidden');
+  document.getElementById(`fileInput_${rowId}`).value = '';
+  updateRowStatus(rowId);
+}
+
+// ── Field change handler ──────────────────────────────────────────────────────
+function onFieldChange(rowId) {
+  updatePreview(rowId);
+  updateUrlPreview(rowId);
+  updateRowStatus(rowId);
+}
+
+function getSiteUtm(siteName) {
+  return SITES.find(s => s.name === siteName)?.utmSource || siteName.replace(/\..+/, '');
+}
+
+function rv(rowId, field) {
+  const el = document.getElementById(`r_${field}_${rowId}`);
+  return el ? el.value.trim() : '';
+}
+
+function buildPlacementName(rowId) {
+  const jobNum = gv('g_jobNumber');
+  const campSel = document.getElementById('g_campaign');
+  const campOpt = campSel?.options[campSel.selectedIndex];
+  const campName = campOpt?.dataset?.name || '';
+  const parts = [
+    jobNum,
+    gv('g_client'),
+    getSiteUtm(rv(rowId,'site')),
+    rv(rowId,'format'),
+    rv(rowId,'creative'),
+    rv(rowId,'dims'),
+    rv(rowId,'funnel'),
+    rv(rowId,'country'),
+    rv(rowId,'city') || 'Multiple',
+    rows.find(r=>r.id===rowId)?.rowNum || rowId,
+  ];
+  return parts.every((p,i) => i===0||p) ? parts.join('_') : null;
+}
+
+function buildAdName(rowId) {
+  const parts = [rv(rowId,'format'), rv(rowId,'creative'), rv(rowId,'dims'), rv(rowId,'funnel'), rv(rowId,'country'), rv(rowId,'city')||'Multiple'];
+  return parts.every(p=>p) ? parts.join('_') : null;
+}
+
+function updatePreview(rowId) {
+  const pName = buildPlacementName(rowId);
+  const aName = buildAdName(rowId);
+  const pEl = document.getElementById(`prevPlacement_${rowId}`);
+  const aEl = document.getElementById(`prevAd_${rowId}`);
+  if (!pEl || !aEl) return;
+
+  if (pName) {
+    pEl.textContent = pName; pEl.className = 'pv';
+  } else {
+    pEl.textContent = 'Fill in details above to preview…'; pEl.className = 'pv empty';
+  }
+  if (aName) {
+    aEl.textContent = aName; aEl.className = 'pv';
+  } else {
+    aEl.textContent = 'Fill in details above to preview…'; aEl.className = 'pv empty';
+  }
+
+  // Update summary in header
+  const summary = document.getElementById(`rowSummary_${rowId}`);
+  if (summary && pName) summary.textContent = pName;
+}
+
+function updateUrlPreview(rowId) {
+  const base = rv(rowId, 'landing');
+  const site = rv(rowId, 'site');
+  const medium = rv(rowId, 'medium');
+  const campSel = document.getElementById('g_campaign');
+  const camp = campSel?.options[campSel?.selectedIndex]?.dataset?.name || '';
+  const preview = document.getElementById(`urlPreview_${rowId}`);
+  if (!preview) return;
+  if (!base) { preview.textContent = 'Fill in landing page above…'; preview.style.color='#aaa'; preview.style.fontStyle='italic'; return; }
+  const params = [];
+  if (site) params.push(`utm_source=${encodeURIComponent(getSiteUtm(site))}`);
+  if (medium) params.push(`utm_medium=${encodeURIComponent(medium)}`);
+  if (camp) params.push(`utm_campaign=${encodeURIComponent(camp)}`);
+  const url = params.length ? `${base}?${params.join('&')}` : base;
+  preview.textContent = url; preview.style.color='#1F4E79'; preview.style.fontStyle='normal';
+}
+
+function updateRowStatus(rowId) {
+  const statusEl = document.getElementById(`rowStatus_${rowId}`);
+  if (!statusEl) return;
+  const row = rows.find(r => r.id === rowId);
+  const hasCore = rv(rowId,'site') && rv(rowId,'medium') && rv(rowId,'format') && rv(rowId,'dims') && rv(rowId,'funnel') && rv(rowId,'country') && rv(rowId,'start') && rv(rowId,'end') && rv(rowId,'creative') && rv(rowId,'landing') && row?.tagType;
+  if (!hasCore) { statusEl.textContent = 'Draft'; statusEl.className = 'row-status draft'; return; }
+  if (row?.tagType === 'Standard' && !uploadedFiles[rowId]) { statusEl.textContent = 'Missing file'; statusEl.className = 'row-status err'; return; }
+  if (row?.tagType === 'TrackingAd' && !row?.trackingChoice) { statusEl.textContent = 'Select creative option'; statusEl.className = 'row-status err'; return; }
+  statusEl.textContent = 'Ready'; statusEl.className = 'row-status ok';
+}
+
+// ── Add row button ─────────────────────────────────────────────────────────────
+document.getElementById('btnAddRow').addEventListener('click', addRow);
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+document.getElementById('btnSubmit').addEventListener('click', () => {
+  const statusMsg = document.getElementById('statusMsg');
+  if (!validateAll()) { statusMsg.textContent = 'Fix errors above before submitting.'; statusMsg.className = 'status-err'; return; }
+
+  const campSel = document.getElementById('g_campaign');
+  const campOpt = campSel.options[campSel.selectedIndex];
+  const clientSel = document.getElementById('g_client');
+  const clientOpt = clientSel.options[clientSel.selectedIndex];
+
+  const requests = rows.map((row, idx) => {
+    const rowId = row.id;
+    const site = rv(rowId,'site');
+    const siteObj = SITES.find(s => s.name === site);
+    const base = rv(rowId,'landing');
+    const medium = rv(rowId,'medium');
+    const campName = campOpt?.dataset?.name || '';
+    const params = [];
+    if (siteObj) params.push(`utm_source=${encodeURIComponent(siteObj.utmSource)}`);
+    if (medium) params.push(`utm_medium=${encodeURIComponent(medium)}`);
+    if (campName) params.push(`utm_campaign=${encodeURIComponent(campName)}`);
+    const destUrl = params.length ? `${base}?${params.join('&')}` : base;
+    const fmtDate = s => { if (!s) return ''; const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; };
+
+    return {
+      rowId: idx + 1,
+      submissionId: `${gv('g_jobNumber')}_${Date.now()}_${idx+1}`,
+      client: gv('g_client'),
+      advertiserId: clientOpt?.dataset?.advertiserId || '',
+      campaignId: campOpt?.value || '',
+      campaignName: campName,
+      jobNumber: gv('g_jobNumber'),
+      requesterName: gv('g_requesterName'),
+      requesterEmail: gv('g_requesterEmail'),
+      site: site,
+      siteId: siteObj?.id || '',
+      medium: medium,
+      format: rv(rowId,'format'),
+      tagType: row.tagType,
+      dimensions: rv(rowId,'dims'),
+      funnelStage: rv(rowId,'funnel'),
+      country: rv(rowId,'country'),
+      city: rv(rowId,'city') || 'Multiple',
+      pricingType: rv(rowId,'pricing') || 'CPM',
+      startDate: fmtDate(rv(rowId,'start')),
+      endDate: fmtDate(rv(rowId,'end')),
+      creativeName: rv(rowId,'creative'),
+      assetFilename: uploadedFiles[rowId]?.name || '',
+      trackingCreativeId: row.trackingChoice === 'existing' ? document.getElementById(`r_trackingId_${rowId}`)?.value.trim() || '' : '',
+      trackingCreativeName: row.trackingChoice === 'new' ? document.getElementById(`r_trackingName_${rowId}`)?.value.trim() || '' : '',
+      landingPage: base,
+      destinationUrl: destUrl,
+      placementName: buildPlacementName(rowId),
+      adName: buildAdName(rowId),
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+    };
+  });
+
+  // Download one JSON per request
+  requests.forEach((req, idx) => {
+    const blob = new Blob([JSON.stringify(req, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `request_${req.submissionId}.json`;
+    setTimeout(() => { a.click(); URL.revokeObjectURL(url); }, idx * 300);
+  });
+
+  statusMsg.textContent = `✓ ${requests.length} request${requests.length>1?'s':''} downloaded — add to requests/ in GitHub and open a PR.`;
+  statusMsg.className = 'status-ok';
+});
+
+function validateAll() {
+  let ok = true;
+  if (!gv('g_client')) { document.getElementById('g_client').style.borderColor='#e24b4a'; ok=false; }
+  if (!gv('g_campaign') && !document.getElementById('g_campaign').value) { document.getElementById('g_campaign').style.borderColor='#e24b4a'; ok=false; }
+  if (!gv('g_jobNumber')) { document.getElementById('g_jobNumber').style.borderColor='#e24b4a'; ok=false; }
+  if (!gv('g_requesterEmail')) { document.getElementById('g_requesterEmail').style.borderColor='#e24b4a'; ok=false; }
+
+  if (rows.length === 0) {
+    document.getElementById('statusMsg').textContent = 'Add at least one placement.';
+    document.getElementById('statusMsg').className = 'status-err';
+    return false;
+  }
+
+  rows.forEach(row => {
+    const id = row.id;
+    if (!row.tagType) { document.getElementById(`ttErr_${id}`).classList.remove('hidden'); ok=false; }
+    ['r_site','r_medium','r_format','r_dims','r_funnel','r_country','r_start','r_end','r_creative','r_landing'].forEach(f => {
+      const el = document.getElementById(`${f}_${id}`);
+      if (el && !el.value.trim()) { el.style.borderColor='#e24b4a'; ok=false; }
+    });
+    if (row.tagType === 'Standard' && !uploadedFiles[id]) {
+      document.getElementById(`fileErr_${id}`).textContent = 'Please upload a creative file';
+      document.getElementById(`fileErr_${id}`).classList.remove('hidden');
+      ok=false;
+    }
+    if (row.tagType === 'TrackingAd' && !row.trackingChoice) {
+      document.getElementById(`tcErr_${id}`).classList.remove('hidden'); ok=false;
+    }
+    if (row.tagType === 'TrackingAd' && row.trackingChoice === 'existing') {
+      const tidEl = document.getElementById(`r_trackingId_${id}`);
+      if (tidEl && !tidEl.value.trim()) { tidEl.style.borderColor='#e24b4a'; ok=false; }
+    }
+    if (row.tagType === 'TrackingAd' && row.trackingChoice === 'new') {
+      const tnEl = document.getElementById(`r_trackingName_${id}`);
+      if (tnEl && !tnEl.value.trim()) { tnEl.style.borderColor='#e24b4a'; ok=false; }
+    }
+  });
+  return ok;
+}
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  rows = []; rowCounter = 0; uploadedFiles = {};
+  document.getElementById('rowsContainer').innerHTML = '';
+  document.getElementById('statusMsg').textContent = '';
+  ['g_client','g_campaign','g_jobNumber','g_requesterName','g_requesterEmail'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value=''; el.style.borderColor=''; }
+  });
+});
+
+// Start with one row
+addRow();
+</script>
+</body>
+</html>

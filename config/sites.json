@@ -1,0 +1,11 @@
+{
+  "_comment": "Add new sites here as needed. The label becomes the dropdown option in the form.",
+  "sites": [
+    { "name": "Meta.com", "id": "10326582", "label": "Meta / Facebook", "utmSource": "Facebook" },
+    { "name": "Instagram.com", "id": "2532324", "label": "Instagram", "utmSource": "Instagram" },
+    { "name": "MicrosoftAdvertising.com", "id": "10528412", "label": "Microsoft Ads / Bing", "utmSource": "Bing" },
+    { "name": "TikTok.com", "id": "6662986", "label": "TikTok UK", "utmSource": "TikTok" },
+    { "name": "StackAdapt.com", "id": "9915189", "label": "StackAdapt", "utmSource": "StackAdapt" },
+    { "name": "LinkedIn.com", "id": "2584125", "label": "LinkedIn", "utmSource": "LinkedIn" }
+  ]
+}

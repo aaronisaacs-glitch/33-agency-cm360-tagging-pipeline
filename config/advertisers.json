@@ -1,0 +1,6 @@
+{
+  "_comment": "Add new advertisers here as they onboard. The name becomes the dropdown option in the form.",
+  "advertisers": [
+    { "name": "Serco", "id": "16165495" }
+  ]
+}
