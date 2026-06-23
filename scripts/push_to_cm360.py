@@ -33,7 +33,7 @@ SCOPES = ["https://www.googleapis.com/auth/dfatrafficking"]
 
 def get_service():
     creds, _ = google.auth.default(scopes=SCOPES)
-    return build("dfareporting", "v4", credentials=creds)
+    return build("dfareporting", "v3.5", credentials=creds)
 
 def get_profile_id(service):
     profiles = service.userProfiles().list().execute()
