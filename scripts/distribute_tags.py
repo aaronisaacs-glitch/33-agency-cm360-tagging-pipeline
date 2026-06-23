@@ -26,7 +26,7 @@ TAGS_DIR = ROOT / "tags"
 OUTPUTS_DIR = ROOT / "outputs"
 OUTPUTS_DIR.mkdir(exist_ok=True)
 
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", "tagging-pipeline@youragency.com")
 BIDDABLE_EMAIL = os.environ.get("BIDDABLE_TEAM_EMAIL", "")
 
@@ -129,42 +129,41 @@ def build_tag_sheet(camp_data: dict) -> Path:
 
 def send_email(to_emails: list, subject: str, body: str, attachment_path: Path):
     """Send tag sheet via SendGrid."""
-    if not SENDGRID_API_KEY:
-        print("  ⚠  SENDGRID_API_KEY not set — skipping email, tag sheet saved to outputs/")
-        return
+    if not BREVO_API_KEY:
+    print("  ⚠  BREVO_API_KEY not set — skipping email, tag sheet saved to outputs/ only")
+    return
 
-    import urllib.request
-    import base64
+import urllib.request
+import base64
 
-    with open(attachment_path, "rb") as f:
-        attachment_data = base64.b64encode(f.read()).decode()
+with open(attachment_path, "rb") as f:
+    attachment_data = base64.b64encode(f.read()).decode()
 
-    payload = {
-        "personalizations": [{"to": [{"email": e} for e in to_emails]}],
-        "from": {"email": FROM_EMAIL, "name": "CM360 Tagging Pipeline"},
-        "subject": subject,
-        "content": [{"type": "text/html", "value": body}],
-        "attachments": [{
-            "content": attachment_data,
-            "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "filename": attachment_path.name,
-        }]
-    }
+payload = {
+    "sender": {"email": FROM_EMAIL, "name": "CM360 Tagging Pipeline"},
+    "to": [{"email": e} for e in to_emails],
+    "subject": subject,
+    "htmlContent": body,
+    "attachment": [{
+        "content": attachment_data,
+        "name": attachment_path.name
+    }]
+}
 
-    req = urllib.request.Request(
-        "https://api.sendgrid.com/v3/mail/send",
-        data=json.dumps(payload).encode(),
-        headers={
-            "Authorization": f"Bearer {SENDGRID_API_KEY}",
-            "Content-Type": "application/json"
-        },
-        method="POST"
-    )
-    try:
-        with urllib.request.urlopen(req) as resp:
-            print(f"  ✓ Email sent to: {', '.join(to_emails)} (status {resp.status})")
-    except Exception as e:
-        print(f"  ✗ Email failed: {e}")
+req = urllib.request.Request(
+    "https://api.brevo.com/v3/smtp/email",
+    data=json.dumps(payload).encode(),
+    headers={
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json"
+    },
+    method="POST"
+)
+try:
+    with urllib.request.urlopen(req) as resp:
+        print(f"  ✓ Email sent to: {', '.join(to_emails)} (status {resp.status})")
+except Exception as e:
+    print(f"  ✗ Email failed: {e}")
 
 def distribute():
     tag_files = list(TAGS_DIR.glob("tags_*.json"))
